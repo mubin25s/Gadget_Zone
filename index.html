@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duck Zone - Premium Gadgets</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header id="main-header"></header>
+
+    <main>
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Welcome to Duck Zone</h1>
+                <p>Quacking good deals on premium gadgets!</p>
+                <br>
+                <a href="shop.html" class="btn btn-primary">Start Shopping</a>
+            </div>
+        </div>
+
+        <section class="container">
+            <h2 style="text-align: center; margin-bottom: 2rem; font-family: var(--font-heading);">Featured Products</h2>
+            <div id="featured-products" class="product-grid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Duck Zone. All rights reserved.</p>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
+    <script src="js/firebase-config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Simple script to load featured products (simulated)
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('featured-products');
+            const products = await db.getProducts(); // Uses data.js helper
+            
+            // Take first 4
+            products.slice(0, 4).forEach(p => {
+                const el = document.createElement('div');
+                el.className = 'product-card';
+                el.innerHTML = `
+                    <div class="product-image" style="background-image: url('${p.image || 'https://via.placeholder.com/300'}')"></div>
+                    <div class="product-info">
+                        <h3 class="product-title">${p.name}</h3>
+                        <div class="product-price">$${p.price}</div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+            
+            if(products.length === 0) {
+                 container.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">No products found yet. Check back soon!</p>';
+            }
+        });
+    </script>
+</body>
+</html>

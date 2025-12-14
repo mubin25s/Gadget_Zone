@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Duck Zone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header id="main-header"></header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <h1 style="font-family: var(--font-heading); margin-bottom: 2rem;">Admin Dashboard</h1>
+        
+        <div style="margin-bottom: 2rem;">
+            <h2>Add New Product</h2>
+            <form id="add-product-form" style="background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 1rem;">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" name="price" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="text" name="image" class="form-control" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Product</button>
+            </form>
+        </div>
+
+        <div>
+            <h2>Recent Orders</h2>
+            <div id="admin-orders-list">
+                Loading...
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Duck Zone. All rights reserved.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = db.getCurrentUser();
+            if (!user || user.role !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Handle add product
+            document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const product = {
+                    name: formData.get('name'),
+                    price: parseFloat(formData.get('price')),
+                    image: formData.get('image'),
+                    description: formData.get('description'),
+                };
+                
+                try {
+                    await db.addProduct(product);
+                    alert('Product added!');
+                    e.target.reset();
+                } catch (err) {
+                    console.error(err);
+                    alert('Error adding product.');
+                }
+            });
+            
+            // Load orders
+            const orders = await db.getOrders();
+            const ordersList = document.getElementById('admin-orders-list');
+            
+            if (orders.length === 0) {
+                ordersList.innerHTML = '<p>No orders yet.</p>';
+            } else {
+                ordersList.innerHTML = orders.map(o => `
+                    <div style="background: var(--white); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius); border-left: 4px solid var(--secondary);">
+                        <h4>Order #${o.id.substr(0, 8)} - ${o.status || 'Pending'}</h4>
+                        <p>Customer: ${o.customerName} (${o.email})</p>
+                        <p>Total: $${o.total.toFixed(2)}</p>
+                    </div>
+                `).join('');
+            }
+        });
+    </script>
+</body>
+</html>

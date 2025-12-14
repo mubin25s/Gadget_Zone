@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Duck Zone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header id="main-header"></header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <h1 style="font-family: var(--font-heading); margin-bottom: 2rem;">Checkout</h1>
+        
+        <form id="checkout-form" style="max-width: 600px; margin: 0 auto; background: var(--white); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow);">
+            
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Shipping Address</label>
+                <textarea id="address" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                <h3>Total: <span id="checkout-total">$0.00</span></h3>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">Place Order</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Duck Zone. All rights reserved.</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const totalEl = document.getElementById('checkout-total');
+            const cart = db.getCart();
+            const products = await db.getProducts();
+            
+            let total = 0;
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (product) {
+                    total += product.price * item.quantity;
+                }
+            });
+            
+            totalEl.textContent = '$' + total.toFixed(2);
+
+            document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Simulate order placement
+                const order = {
+                    customerName: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    address: document.getElementById('address').value,
+                    items: cart,
+                    total: total,
+                    status: 'Pending'
+                };
+                
+                try {
+                    await db.addOrder(order);
+                    db.clearCart();
+                    updateCartBadge();
+                    alert('Order placed successfully! Quack!');
+                    window.location.href = 'index.html';
+                } catch (err) {
+                    alert('Failed to place order. Please try again.');
+                    console.error(err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
